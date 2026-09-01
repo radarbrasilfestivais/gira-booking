@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gira — Directorio Internacional de Agencias de Booking</title>
+<meta name="description" content="Directorio con más de 2.300 agencias de booking en todo el mundo, con géneros, contactos y países de actuación.">
+<meta name="theme-color" content="#0d2436">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div class="gate-stamp">GIRA</div>
+    <h1 class="gate-title">Acceso al directorio</h1>
+    <p class="gate-sub">Ingresa la clave de acceso enviada con tu compra.</p>
+    <form id="gateForm" autocomplete="off">
+      <input id="gateInput" type="text" inputmode="text" placeholder="Clave de acceso" autocomplete="off" spellcheck="false">
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="gateError" class="gate-error" hidden>Clave inválida. Revisa el correo de tu compra.</p>
+    <p class="gate-foot">¿Todavía no compraste? <a href="#" id="gateBuyLink">Obtener acceso</a></p>
+  </div>
+</div>
+
+<div id="appRoot" class="app" hidden>
+
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="stamp">GIRA</span>
+      <span class="brand-sub">Directorio de Booking Internacional</span>
+    </div>
+    <button id="installBtn" class="install-btn" hidden>Instalar app</button>
+  </header>
+
+  <div class="searchbar">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="searchInput" type="text" placeholder="Buscar por nombre, género, país, ciudad..." autocomplete="off">
+        <button id="clearSearch" class="clear-btn" hidden aria-label="Limpiar búsqueda">×</button>
+      </div>
+      <button id="filterToggle" class="filter-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        <span>Filtros</span>
+        <span id="filterCount" class="filter-count" hidden>0</span>
+      </button>
+    </div>
+
+    <div id="filterPanel" class="filter-panel" hidden>
+      <div class="filter-group">
+        <div class="filter-group-head">
+          <h3>Género / Tipo de artista</h3>
+          <button class="filter-clear-link" data-clear="genre">limpiar</button>
+        </div>
+        <div id="genreChips" class="chip-row"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-head">
+          <h3>País / Región de booking</h3>
+          <button class="filter-clear-link" data-clear="country">limpiar</button>
+        </div>
+        <div id="countryChips" class="chip-row"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-head">
+          <h3>Tiene contacto directo</h3>
+        </div>
+        <div class="chip-row">
+          <button class="chip" data-contact="email">Email</button>
+          <button class="chip" data-contact="phone">Teléfono</button>
+          <button class="chip" data-contact="site">Sitio web</button>
+          <button class="chip" data-contact="social">Redes sociales</button>
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button id="clearAllFilters" class="btn-ghost">Limpiar todo</button>
+        <button id="applyFilters" class="btn-solid">Ver resultados</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-meta">
+    <span id="resultsCount">Cargando directorio...</span>
+    <div class="sort-wrap">
+      <label for="sortSelect">Ordenar</label>
+      <select id="sortSelect">
+        <option value="name">Nombre (A–Z)</option>
+        <option value="contact">Más datos de contacto</option>
+      </select>
+    </div>
+  </div>
+
+  <main id="results" class="results" aria-live="polite"></main>
+
+  <div id="emptyState" class="empty-state" hidden>
+    <div class="empty-stamp">∅</div>
+    <p>No se encontraron agencias con esos filtros.</p>
+    <button id="emptyReset" class="btn-ghost">Limpiar búsqueda y filtros</button>
+  </div>
+
+  <div id="sentinel" class="sentinel"></div>
+</div>
+
+<div id="detailOverlay" class="detail-overlay" hidden>
+  <div class="detail-card" id="detailCard"></div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
