@@ -8,7 +8,7 @@
  * bug, etc.), basta mudar este número (ex: "v1" -> "v2") para forçar
  * todo mundo a baixar os arquivos novos automaticamente.
  */
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const CACHE_NAME = "gira-" + CACHE_VERSION;
 
 const ASSETS = [
@@ -16,6 +16,7 @@ const ASSETS = [
   "./styles.css",
   "./app.js",
   "./data.js",
+  "./firebase-config.js",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",
@@ -56,14 +57,21 @@ self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
 
   const url = event.request.url;
-  const isCoreScript = url.indexOf("app.js") !== -1 || url.indexOf("data.js") !== -1;
+  const isCoreScript = url.indexOf("app.js") !== -1 || url.indexOf("data.js") !== -1 || url.indexOf("firebase-config.js") !== -1;
+  const isFirebaseCdn = url.indexOf("gstatic.com/firebasejs") !== -1;
+
+  // O SDK do Firebase vem de um CDN externo (gstatic.com) — nunca
+  // interceptamos esse pedido, deixamos o navegador cuidar normalmente
+  // (o próprio CDN já tem cache eficiente). Interceptar isso à toa só
+  // criaria mais um ponto de falha.
+  if (isFirebaseCdn) return;
 
   // Network-first para a navegação da página E para os scripts essenciais
-  // (app.js / data.js). Esses dois arquivos são o "cérebro" do app — se
-  // eles ficarem presos numa versão velha ou corrompida do cache, o app
-  // trava sem nenhum aviso. Network-first garante que, sempre que houver
-  // conexão, a versão mais nova e íntegra é buscada primeiro; o cache só
-  // é usado como reserva se estiver realmente offline.
+  // (app.js / data.js / firebase-config.js). Esses arquivos são o
+  // "cérebro" do app — se ficarem presos numa versão velha ou corrompida
+  // do cache, o app trava sem nenhum aviso. Network-first garante que,
+  // sempre que houver conexão, a versão mais nova e íntegra é buscada
+  // primeiro; o cache só é usado como reserva se estiver realmente offline.
   if (event.request.mode === "navigate" || isCoreScript) {
     event.respondWith(
       fetch(event.request)

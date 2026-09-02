@@ -20,12 +20,13 @@
   <div class="gate-card">
     <div class="gate-stamp">GIRA</div>
     <h1 class="gate-title">Acceso al directorio</h1>
-    <p class="gate-sub">Ingresa la clave de acceso enviada con tu compra.</p>
+    <p class="gate-sub">Ingresa el email y la contraseña que recibiste por correo tras tu compra.</p>
     <form id="gateForm" autocomplete="off">
-      <input id="gateInput" type="text" inputmode="text" placeholder="Clave de acceso" autocomplete="off" spellcheck="false">
+      <input id="gateEmail" type="email" inputmode="email" placeholder="Email" autocomplete="username" spellcheck="false">
+      <input id="gatePassword" type="password" placeholder="Contraseña" autocomplete="current-password">
       <button type="submit">Entrar</button>
     </form>
-    <p id="gateError" class="gate-error" hidden>Clave inválida. Revisa el correo de tu compra.</p>
+    <p id="gateError" class="gate-error" hidden>No pudimos verificar tus datos. Revisa el correo de tu compra.</p>
     <p class="gate-foot">¿Todavía no compraste? <a href="#" id="gateBuyLink">Obtener acceso</a></p>
   </div>
 </div>
@@ -113,6 +114,10 @@
   <div class="detail-card" id="detailCard"></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

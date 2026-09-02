@@ -2,27 +2,15 @@
   "use strict";
 
   /* =====================================================
-     CONFIG — chave(s) de licença aceitas.
-     Isso NÃO é uma proteção real (é tudo client-side e
-     visível pra quem inspecionar o código-fonte). Serve
-     apenas para impedir acesso casual por quem não comprou.
-     Para proteção de verdade, valide a chave num backend.
-
-     Uma chave por comprador: acrescente uma linha nova por
-     pessoa/venda, como no exemplo abaixo. Isso não impede
-     compartilhamento tecnicamente, mas funciona como
-     identificador — se uma chave específica aparecer
-     vazada por aí, dá pra saber de quem era e retirá-la
-     desta lista na próxima atualização do arquivo.
-     Sugestão de padrão: GIRA-2026-NOMEOUPEDIDO
+     CONFIG — acesso agora é validado pelo Firebase Authentication
+     (email + senha), não mais por uma lista de chaves fixas no
+     código. Cada comprador tem seu próprio login, criado
+     automaticamente pela automação Herospark → Make → Firebase.
+     Se um comprador pedir reembolso, basta desativar o login
+     dele no painel do Firebase (Authentication) — o resto dos
+     compradores continua funcionando normalmente.
   ===================================================== */
-  const VALID_KEYS = [
-    "GIRA-2026-MARIA01",
-    "GIRA-2026-JUAN02",
-    "GIRA-2026-CARLA03"
-  ];
   const BUY_LINK = "https://pay.kiwify.com.br/TU-LINK-AQUI";
-  const STORAGE_KEY = "gira_access_v1";
 
   /* ===================== App state =====================
      Declarado ANTES de qualquer função que possa lê-lo, para
@@ -41,32 +29,35 @@
     sort: "name",
   };
 
-  /* ===================== Gate ===================== */
+  /* ===================== Gate (login Firebase) ===================== */
   const gate = document.getElementById("gate");
   const appRoot = document.getElementById("appRoot");
   const gateForm = document.getElementById("gateForm");
-  const gateInput = document.getElementById("gateInput");
+  const gateEmail = document.getElementById("gateEmail");
+  const gatePassword = document.getElementById("gatePassword");
   const gateError = document.getElementById("gateError");
   const gateBuyLink = document.getElementById("gateBuyLink");
   gateBuyLink.href = BUY_LINK;
 
-  function normalizeKey(k) {
-    return (k || "").trim().toUpperCase();
-  }
+  const auth = firebase.auth();
 
-  function checkAccess() {
-    let saved = null;
-    try {
-      saved = localStorage.getItem(STORAGE_KEY);
-    } catch (err) {
-      // localStorage pode falhar em modo privado/restrito — nesse caso
-      // apenas mostra a tela de login normalmente, em vez de travar.
-    }
-    if (saved && VALID_KEYS.includes(saved)) {
+  /*
+   * onAuthStateChanged é o "vigia" do Firebase: roda automaticamente
+   * sempre que a página carrega, informando se já existe uma sessão
+   * válida guardada no navegador (login persistente) ou não. Isso
+   * substitui o antigo localStorage manual — o Firebase cuida disso
+   * sozinho, de forma seaura, e também é quem detecta se o login foi
+   * desativado (ex: reembolso) e desconecta o usuário automaticamente
+   * na próxima vez que abrir o app.
+   */
+  auth.onAuthStateChanged(function (user) {
+    if (user) {
       grantAccess();
-      return;
+    } else {
+      gate.hidden = false;
+      appRoot.hidden = true;
     }
-  }
+  });
 
   function grantAccess() {
     gate.hidden = true;
@@ -155,18 +146,51 @@
 
   gateForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    const key = normalizeKey(gateInput.value);
-    if (VALID_KEYS.includes(key)) {
-      localStorage.setItem(STORAGE_KEY, key);
-      grantAccess();
-    } else {
-      gateError.hidden = false;
-      gateInput.focus();
-      gateInput.select();
-    }
+    gateError.hidden = true;
+    const email = (gateEmail.value || "").trim();
+    const password = gatePassword.value || "";
+    if (!email || !password) return;
+
+    const submitBtn = gateForm.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = "Verificando...";
+
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(function () {
+        return auth.signInWithEmailAndPassword(email, password);
+      })
+      .then(function () {
+        // onAuthStateChanged cuida de chamar grantAccess() automaticamente.
+      })
+      .catch(function (err) {
+        gateError.textContent = gateErrorMessage(err);
+        gateError.hidden = false;
+        gatePassword.focus();
+        gatePassword.select();
+      })
+      .finally(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalLabel;
+      });
   });
 
-  checkAccess();
+  function gateErrorMessage(err) {
+    const code = err && err.code;
+    if (code === "auth/user-disabled") {
+      return "Este acceso fue desactivado. Si crees que es un error, contáctanos.";
+    }
+    if (code === "auth/invalid-email") {
+      return "Ese email no parece válido.";
+    }
+    if (code === "auth/too-many-requests") {
+      return "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.";
+    }
+    // auth/user-not-found, auth/wrong-password y variantes se agrupan
+    // en un mensaje genérico a propósito: no confirmamos si el email
+    // existe o no, por seguridad.
+    return "No pudimos verificar tus datos. Revisa el correo de tu compra.";
+  }
 
   function normText(s) {
     return (s || "")
