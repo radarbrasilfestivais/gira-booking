@@ -24,6 +24,23 @@
   const BUY_LINK = "https://pay.kiwify.com.br/TU-LINK-AQUI";
   const STORAGE_KEY = "gira_access_v1";
 
+  /* ===================== App state =====================
+     Declarado ANTES de qualquer função que possa lê-lo, para
+     nunca mais correr risco de "Cannot access before initialization". */
+  let ALL = [];
+  let FILTERS = { genres: [], countries: [] };
+  let filtered = [];
+  let renderedCount = 0;
+  const PAGE_SIZE = 30;
+
+  const state = {
+    query: "",
+    genres: new Set(),
+    countries: new Set(),
+    contact: new Set(), // 'email' | 'phone' | 'site' | 'social'
+    sort: "name",
+  };
+
   /* ===================== Gate ===================== */
   const gate = document.getElementById("gate");
   const appRoot = document.getElementById("appRoot");
@@ -150,21 +167,6 @@
   });
 
   checkAccess();
-
-  /* ===================== App state ===================== */
-  let ALL = [];
-  let FILTERS = { genres: [], countries: [] };
-  let filtered = [];
-  let renderedCount = 0;
-  const PAGE_SIZE = 30;
-
-  const state = {
-    query: "",
-    genres: new Set(),
-    countries: new Set(),
-    contact: new Set(), // 'email' | 'phone' | 'site' | 'social'
-    sort: "name",
-  };
 
   function normText(s) {
     return (s || "")
