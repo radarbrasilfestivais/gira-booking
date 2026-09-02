@@ -38,7 +38,13 @@
   }
 
   function checkAccess() {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    let saved = null;
+    try {
+      saved = localStorage.getItem(STORAGE_KEY);
+    } catch (err) {
+      // localStorage pode falhar em modo privado/restrito — nesse caso
+      // apenas mostra a tela de login normalmente, em vez de travar.
+    }
     if (saved && VALID_KEYS.includes(saved)) {
       grantAccess();
       return;
@@ -48,7 +54,57 @@
   function grantAccess() {
     gate.hidden = true;
     appRoot.hidden = false;
-    initApp();
+    safeInitApp();
+  }
+
+  /*
+   * Rede de segurança: se window.__AGENCY_DATA__ não existir ainda (o
+   * data.js — que é um arquivo grande — pode não ter terminado de
+   * carregar/decodificar em conexões lentas, ou pode ter vindo
+   * corrompido de um cache antigo), NÃO deixa a tela travada para
+   * sempre em "Cargando directorio...". Tenta de novo por alguns
+   * segundos e, se não conseguir, mostra um botão de recarregar.
+   */
+  function safeInitApp(attempt) {
+    attempt = attempt || 0;
+    try {
+      if (!window.__AGENCY_DATA__ || !window.__AGENCY_DATA__.length) {
+        if (attempt < 40) {
+          setTimeout(function () { safeInitApp(attempt + 1); }, 150);
+          return;
+        }
+        throw new Error("data.js no cargó a tiempo");
+      }
+      initApp();
+    } catch (err) {
+      showLoadError();
+    }
+  }
+
+  function showLoadError() {
+    const results = document.getElementById("results");
+    const meta = document.getElementById("resultsCount");
+    if (meta) meta.textContent = "No se pudo cargar el directorio";
+    if (results) {
+      results.innerHTML = "";
+      const box = document.createElement("div");
+      box.style.textAlign = "center";
+      box.style.padding = "60px 20px";
+      box.style.color = "var(--text-soft)";
+      const msg = document.createElement("p");
+      msg.style.marginBottom = "18px";
+      msg.textContent = "Hubo un problema al cargar los datos del directorio.";
+      const btn = document.createElement("button");
+      btn.className = "btn-solid";
+      btn.textContent = "Recargar";
+      btn.addEventListener("click", function () {
+        // Fuerza recarga sin usar la versión en caché del navegador.
+        window.location.reload();
+      });
+      box.appendChild(msg);
+      box.appendChild(btn);
+      results.appendChild(box);
+    }
   }
 
   gateForm.addEventListener("submit", function (e) {
