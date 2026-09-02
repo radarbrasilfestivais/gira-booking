@@ -58,30 +58,52 @@
   }
 
   /*
-   * Rede de segurança: se window.__AGENCY_DATA__ não existir ainda (o
-   * data.js — que é um arquivo grande — pode não ter terminado de
-   * carregar/decodificar em conexões lentas, ou pode ter vindo
-   * corrompido de um cache antigo), NÃO deixa a tela travada para
-   * sempre em "Cargando directorio...". Tenta de novo por alguns
-   * segundos e, se não conseguir, mostra um botão de recarregar.
+   * Rede de segurança de verdade — sem "adivinhar" com timeout curto.
+   *
+   * Antes, o código só ficava tentando por alguns segundos e desistia,
+   * o que dava erro falso em conexões mais lentas (o data.js tem ~1MB).
+   * Agora: espera até 25 segundos (tempo de sobra mesmo em conexão
+   * ruim) E, ao mesmo tempo, escuta se o <script src="data.js"> deu
+   * erro de verdade (arquivo não encontrado, rede caiu, etc.) — nesse
+   * caso mostra o aviso na hora, sem esperar o tempo todo à toa.
    */
+  let DATA_SCRIPT_FAILED = false;
+  (function watchDataScript() {
+    // Encontra a tag <script src="...data.js..."> já presente no HTML
+    // e escuta o evento nativo de erro de carregamento dela.
+    const scripts = document.getElementsByTagName("script");
+    for (let i = 0; i < scripts.length; i++) {
+      if (scripts[i].src && scripts[i].src.indexOf("data.js") !== -1) {
+        scripts[i].addEventListener("error", function () {
+          DATA_SCRIPT_FAILED = true;
+        });
+        break;
+      }
+    }
+  })();
+
   function safeInitApp(attempt) {
     attempt = attempt || 0;
     try {
+      if (DATA_SCRIPT_FAILED) {
+        throw new Error("[error de red al cargar data.js]");
+      }
       if (!window.__AGENCY_DATA__ || !window.__AGENCY_DATA__.length) {
-        if (attempt < 40) {
+        // 170 intentos x 150ms ≈ 25 segundos de margen real antes de
+        // rendirse — de sobra incluso en conexiones lentas.
+        if (attempt < 170) {
           setTimeout(function () { safeInitApp(attempt + 1); }, 150);
           return;
         }
-        throw new Error("data.js no cargó a tiempo");
+        throw new Error("[data.js no cargó a tiempo, 25s]");
       }
       initApp();
     } catch (err) {
-      showLoadError();
+      showLoadError(err && err.message);
     }
   }
 
-  function showLoadError() {
+  function showLoadError(reason) {
     const results = document.getElementById("results");
     const meta = document.getElementById("resultsCount");
     if (meta) meta.textContent = "No se pudo cargar el directorio";
@@ -94,6 +116,12 @@
       const msg = document.createElement("p");
       msg.style.marginBottom = "18px";
       msg.textContent = "Hubo un problema al cargar los datos del directorio.";
+      const detail = document.createElement("p");
+      detail.style.marginBottom = "18px";
+      detail.style.fontSize = "12px";
+      detail.style.opacity = "0.6";
+      detail.style.fontFamily = "var(--font-mono)";
+      detail.textContent = reason || "";
       const btn = document.createElement("button");
       btn.className = "btn-solid";
       btn.textContent = "Recargar";
@@ -102,6 +130,7 @@
         window.location.reload();
       });
       box.appendChild(msg);
+      if (reason) box.appendChild(detail);
       box.appendChild(btn);
       results.appendChild(box);
     }
