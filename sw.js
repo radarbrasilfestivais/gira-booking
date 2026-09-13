@@ -8,13 +8,12 @@
  * bug, etc.), basta mudar este número (ex: "v1" -> "v2") para forçar
  * todo mundo a baixar os arquivos novos automaticamente.
  */
-const CACHE_VERSION = "v7";
+const CACHE_VERSION = "v8";
 const CACHE_NAME = "gira-" + CACHE_VERSION;
 
 const ASSETS = [
   "./index.html",
   "./styles.css",
-  "./logo-icon.png",
   "./app.js",
   "./data.js",
   "./firebase-config.js",

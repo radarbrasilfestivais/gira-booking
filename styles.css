@@ -76,12 +76,16 @@ button, input, select {
   text-align: center;
 }
 
-.gate-logo {
-  display: block;
-  width: 84px;
-  height: 84px;
-  margin: 0 auto 22px;
-  object-fit: contain;
+.gate-stamp {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 6px 16px;
+  margin-bottom: 20px;
 }
 
 .gate-title {
@@ -169,15 +173,18 @@ button, input, select {
 
 .topbar-brand {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 10px;
 }
 
-.topbar-logo {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  flex-shrink: 0;
+.stamp {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 4px 12px;
 }
 
 .brand-sub {
@@ -244,12 +251,9 @@ button, input, select {
   text-align: center;
 }
 
-.welcome-logo {
-  width: 76px;
-  height: 76px;
-  object-fit: contain;
-  margin: 0 auto 20px;
-  display: block;
+.welcome-stamp {
+  display: inline-block;
+  margin-bottom: 20px;
 }
 
 .welcome-title {
