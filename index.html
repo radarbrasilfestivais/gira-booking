@@ -18,7 +18,7 @@
 
 <div id="gate" class="gate">
   <div class="gate-card">
-    <div class="gate-stamp">GIRA</div>
+    <img src="logo-icon.png" alt="Gira" class="gate-logo">
     <h1 class="gate-title">Acceso al directorio</h1>
     <p class="gate-sub">Ingresa el email y la contraseña que recibiste por correo tras tu compra.</p>
     <form id="gateForm" autocomplete="off">
@@ -27,18 +27,56 @@
       <button type="submit">Entrar</button>
     </form>
     <p id="gateError" class="gate-error" hidden>No pudimos verificar tus datos. Revisa el correo de tu compra.</p>
-    <p class="gate-foot">¿Todavía no compraste? <a href="#" id="gateBuyLink">Obtener acceso</a></p>
   </div>
+</div>
+
+<div id="welcomeScreen" class="welcome" hidden>
+  <div class="welcome-card">
+    <img src="logo-icon.png" alt="Gira" class="welcome-logo">
+    <h1 class="welcome-title">¡Bienvenido a GIRA!</h1>
+    <p class="welcome-sub">Tu directorio de más de 2.300 agencias de booking en todo el mundo.</p>
+
+    <div class="welcome-buttons">
+      <button id="btnComoFunciona" class="welcome-btn">
+        <span class="welcome-btn-icon">❓</span>
+        <span class="welcome-btn-text">
+          <strong>Cómo funciona</strong>
+          <small>Aprende a buscar, filtrar y reportar agencias</small>
+        </span>
+      </button>
+      <button id="btnSobreApp" class="welcome-btn">
+        <span class="welcome-btn-icon">📱</span>
+        <span class="welcome-btn-text">
+          <strong>Sobre la app</strong>
+          <small>Qué es GIRA y qué incluye tu acceso</small>
+        </span>
+      </button>
+      <button id="btnAccederDirectorio" class="welcome-btn welcome-btn-primary">
+        <span class="welcome-btn-icon">🎸</span>
+        <span class="welcome-btn-text">
+          <strong>Acceder al directorio</strong>
+          <small>Ir directo a la lista de agencias</small>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="infoOverlay" class="detail-overlay" hidden>
+  <div class="detail-card" id="infoCard"></div>
 </div>
 
 <div id="appRoot" class="app" hidden>
 
   <header class="topbar">
     <div class="topbar-brand">
-      <span class="stamp">GIRA</span>
+      <img src="logo-icon.png" alt="Gira" class="topbar-logo">
       <span class="brand-sub">Directorio de Booking Internacional</span>
     </div>
-    <button id="installBtn" class="install-btn" hidden>Instalar app</button>
+    <div class="topbar-actions">
+      <button id="helpBtn" class="help-btn" aria-label="Ayuda">?</button>
+      <button id="installBtn" class="install-btn" hidden>Instalar app</button>
+    </div>
   </header>
 
   <div class="searchbar">

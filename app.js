@@ -36,6 +36,10 @@
   const gatePassword = document.getElementById("gatePassword");
   const gateError = document.getElementById("gateError");
 
+  const welcomeScreen = document.getElementById("welcomeScreen");
+  const infoOverlay = document.getElementById("infoOverlay");
+  const infoCard = document.getElementById("infoCard");
+
   const auth = firebase.auth();
 
   /*
@@ -58,9 +62,80 @@
 
   function grantAccess() {
     gate.hidden = true;
-    appRoot.hidden = false;
+    // Pré-carrega os dados em segundo plano (para já estarem prontos
+    // quando o usuário clicar em "Acceder al directorio"), mas mostra
+    // primeiro la pantalla de bienvenida — no cae directo en el listado.
     safeInitApp();
+    showWelcomeScreen();
   }
+
+  /* ===================== Welcome screen ===================== */
+
+  function showWelcomeScreen() {
+    welcomeScreen.hidden = false;
+    appRoot.hidden = true;
+  }
+
+  function enterDirectory() {
+    welcomeScreen.hidden = true;
+    appRoot.hidden = false;
+  }
+
+  document.getElementById("btnAccederDirectorio").addEventListener("click", enterDirectory);
+  document.getElementById("helpBtn").addEventListener("click", showWelcomeScreen);
+
+  document.getElementById("btnComoFunciona").addEventListener("click", function () {
+    showInfoOverlay(
+      "Cómo funciona GIRA",
+      '<p>GIRA es un directorio con más de 2.300 agencias de booking internacionales, listas para ayudarte a llevar tu música a otros países.</p>' +
+      '<h3>Buscar y filtrar</h3>' +
+      '<p>Usa la barra de búsqueda para encontrar agencias por nombre, género musical, país o ciudad. Con el botón <strong>Filtros</strong> puedes acotar por género, país de booking o qué tipo de contacto directo tiene la agencia (email, teléfono, sitio web o redes).</p>' +
+      '<h3>Ver el detalle de una agencia</h3>' +
+      '<p>Toca cualquier tarjeta para ver todos los datos de contacto disponibles, los géneros que trabaja y su ubicación.</p>' +
+      '<h3>Reportar una agencia desactualizada</h3>' +
+      '<p>Dentro del detalle de cada agencia hay un botón para reportar si un dato está desactualizado, si la agencia ya no existe o si está duplicada. Tu reporte nos llega directo — así mantenemos el directorio vivo y confiable con la ayuda de toda la comunidad.</p>'
+    );
+  });
+
+  document.getElementById("btnSobreApp").addEventListener("click", function () {
+    showInfoOverlay(
+      "Sobre GIRA",
+      '<p>GIRA es tu directorio internacional de booking, pensado para músicos independientes que quieren tocar fuera de su país sin necesitar un manager o una discográfica.</p>' +
+      '<p>Tu acceso incluye el directorio completo con más de 2.300 agencias de booking en todo el mundo, buscable y filtrable, tanto desde tu computadora como desde tu celular.</p>' +
+      '<p>El directorio se actualiza con el tiempo, y tu acceso ya comprado sigue siendo válido para esas actualizaciones futuras.</p>' +
+      '<p>Cualquier duda, escríbenos a <a href="mailto:suporte@radarbrasilfestivais.com.br">suporte@radarbrasilfestivais.com.br</a>.</p>'
+    );
+  });
+
+  function showInfoOverlay(title, bodyHtml) {
+    infoCard.innerHTML = "";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "detail-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.addEventListener("click", function () { infoOverlay.hidden = true; document.body.style.overflow = ""; });
+    infoCard.appendChild(closeBtn);
+
+    const heading = document.createElement("h2");
+    heading.className = "detail-name";
+    heading.textContent = title;
+    infoCard.appendChild(heading);
+
+    const body = document.createElement("div");
+    body.className = "info-body";
+    body.innerHTML = bodyHtml;
+    infoCard.appendChild(body);
+
+    infoOverlay.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
+  infoOverlay.addEventListener("click", function (e) {
+    if (e.target.id === "infoOverlay") {
+      infoOverlay.hidden = true;
+      document.body.style.overflow = "";
+    }
+  });
 
   /*
    * Rede de segurança de verdade — sem "adivinhar" com timeout curto.
