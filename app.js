@@ -10,7 +10,6 @@
      dele no painel do Firebase (Authentication) — o resto dos
      compradores continua funcionando normalmente.
   ===================================================== */
-  const BUY_LINK = "https://pay.kiwify.com.br/TU-LINK-AQUI";
 
   /* ===================== App state =====================
      Declarado ANTES de qualquer função que possa lê-lo, para
@@ -36,8 +35,6 @@
   const gateEmail = document.getElementById("gateEmail");
   const gatePassword = document.getElementById("gatePassword");
   const gateError = document.getElementById("gateError");
-  const gateBuyLink = document.getElementById("gateBuyLink");
-  gateBuyLink.href = BUY_LINK;
 
   const auth = firebase.auth();
 
@@ -591,8 +588,119 @@
     contacts.appendChild(rows);
     card.appendChild(contacts);
 
+    card.appendChild(reportSection(rec));
+
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
+  }
+
+  /* ===================== Report (Web3Forms) =====================
+     Botão "Reportar esta agencia" dentro do card de detalhe. Ao
+     clicar, mostra um mini-formulário (motivo + comentário opcional)
+     que envia os dados direto pro Web3Forms — sem servidor próprio,
+     igual ao login (Firebase) já faz. O Web3Forms encaminha por
+     email pra suporte@radarbrasilfestivais.com.br automaticamente.
+  ===================================================== */
+  const WEB3FORMS_ACCESS_KEY = "019f86dc-c04d-493b-ab56-b6093b14f3ac";
+
+  function reportSection(rec) {
+    const wrap = document.createElement("div");
+    wrap.className = "detail-section report-section";
+
+    const reportBtn = document.createElement("button");
+    reportBtn.type = "button";
+    reportBtn.className = "report-trigger";
+    reportBtn.innerHTML = iconFlag() + "<span>¿Este contacto está desactualizado? Repórtalo</span>";
+
+    const formBox = document.createElement("div");
+    formBox.className = "report-form";
+    formBox.hidden = true;
+
+    const reasonSelect = document.createElement("select");
+    reasonSelect.className = "report-select";
+    [
+      ["desactualizado", "Datos desactualizados (teléfono, email, etc.)"],
+      ["no_existe", "La agencia ya no existe"],
+      ["duplicado", "Está duplicada en el directorio"],
+      ["otro", "Otro motivo"],
+    ].forEach(function (opt) {
+      const o = document.createElement("option");
+      o.value = opt[0];
+      o.textContent = opt[1];
+      reasonSelect.appendChild(o);
+    });
+
+    const commentBox = document.createElement("textarea");
+    commentBox.className = "report-comment";
+    commentBox.placeholder = "Comentario opcional — ¿qué debería corregirse?";
+    commentBox.rows = 3;
+
+    const sendBtn = document.createElement("button");
+    sendBtn.type = "button";
+    sendBtn.className = "report-send";
+    sendBtn.textContent = "Enviar reporte";
+
+    const statusMsg = document.createElement("div");
+    statusMsg.className = "report-status";
+    statusMsg.hidden = true;
+
+    sendBtn.addEventListener("click", function () {
+      sendBtn.disabled = true;
+      const originalLabel = sendBtn.textContent;
+      sendBtn.textContent = "Enviando...";
+      statusMsg.hidden = true;
+
+      const payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: "Reporte de agencia — " + rec.name,
+        agencia: rec.name,
+        motivo: reasonSelect.options[reasonSelect.selectedIndex].textContent,
+        comentario: commentBox.value.trim() || "(sin comentario)",
+        pais: rec.countries || rec.location || "(no especificado)",
+      };
+
+      fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            statusMsg.textContent = "¡Gracias! Tu reporte fue enviado.";
+            statusMsg.className = "report-status ok";
+            commentBox.value = "";
+          } else {
+            throw new Error("respuesta sin éxito");
+          }
+        })
+        .catch(function () {
+          statusMsg.textContent = "No se pudo enviar. Intenta de nuevo en un momento.";
+          statusMsg.className = "report-status error";
+        })
+        .finally(function () {
+          statusMsg.hidden = false;
+          sendBtn.disabled = false;
+          sendBtn.textContent = originalLabel;
+        });
+    });
+
+    formBox.appendChild(reasonSelect);
+    formBox.appendChild(commentBox);
+    formBox.appendChild(sendBtn);
+    formBox.appendChild(statusMsg);
+
+    reportBtn.addEventListener("click", function () {
+      formBox.hidden = !formBox.hidden;
+    });
+
+    wrap.appendChild(reportBtn);
+    wrap.appendChild(formBox);
+    return wrap;
+  }
+
+  function iconFlag() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>';
   }
 
   function sectionText(label, value) {
